@@ -201,7 +201,7 @@
         },
         {
             "type": "Microsoft.CustomProviders/resourceProviders/sites",
-            "name": "[concat(parameters('funcName'))]",
+            "name": "[parameters('sampleSiteTitle')]",
             "apiVersion": "2018-09-01-preview",
             "location": "[parameters('location')]",
             "dependsOn": [
