@@ -68,13 +68,13 @@
         "sampleSiteTitle": {
             "type": "string",
             "metadata": {
-                "description": "Name of the user to be added."
+                "description": "Name of the sample site to be created"
             }
         },
         "sampleSiteDescription": {
             "type": "string",
             "metadata": {
-                "description": "location of the user, not related to the resource location."
+                "description": "Description of the sample site to be created"
             }
         },
         "_artifactsLocation": {
@@ -201,7 +201,7 @@
         },
         {
             "type": "Microsoft.CustomProviders/resourceProviders/sites",
-            "name": "[concat(parameters('funcName'), '/SampleCustomerSite')]",
+            "name": "[concat(parameters('funcName'))]",
             "apiVersion": "2018-09-01-preview",
             "location": "[parameters('location')]",
             "dependsOn": [
