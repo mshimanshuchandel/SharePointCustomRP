@@ -2,20 +2,33 @@
     "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "funcname": {
+        "location": {
             "type": "string",
-            "defaultValue": ""
-        },
-        "storageName": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "zipFileBlobUri": {
-            "type": "string",
+            "allowedValues": [ "australiaeast", "eastus", "westeurope" ],
             "metadata": {
-                "description": "The Uri to the uploaded function zip file"
-            },
-            "defaultValue": "https://github.com/raosuhas/managedapps-intro/blob/master/SharePointManagementRPWithFunction/CustomerSharePointManager.zip?raw=true"
+                "description": "Location for the resources."
+            }
+        },
+        "deployFunction": {
+            "type": "bool",
+            "defaultValue": true,
+                "metadata": {
+                    "description": "Determines whether to deploy the function app and create the custom RP."
+                }
+        },
+        "funcName": {
+            "type": "string",
+            "defaultValue": "[uniqueString(resourceGroup().id)]",
+            "metadata": {
+                "description": "Name of the function app to be created."
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "defaultValue": "[uniqueString(resourceGroup().id)]",
+            "metadata": {
+                "description": "Name of the storage account for storing users in the function app"
+            }
         },
         "spSiteUrl": {
             "type": "string",
@@ -63,52 +76,76 @@
             "metadata": {
                 "description": "location of the user, not related to the resource location."
             }
+        },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+            },
+            "defaultValue": "https://raw.githubusercontent.com/mshimanshuchandel/SharePointCustomRP/master/101-custom-rp-sharepoint-integration-with-function/"
+        },
+        "_artifactsLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated."
+            },
+            "defaultValue": ""
         }
     },
-    "variables": {
-        "location": "eastus",
-        "customrpApiversion": "2018-09-01-preview"
-    },
+    "variables": {},
     "resources": [
         {
-            "type": "Microsoft.Web/sites",
-            "kind": "functionapp",
-            "name": "[parameters('funcname')]",
+            "condition": "[parameters('deployFunction')]",
+            "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2018-02-01",
-            "location": "East US",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "Standard_LRS"
+            }
+        },
+        {
+            "condition": "[parameters('deployFunction')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('funcName')]",
+            "location": "[parameters('location')]",
+            "kind": "functionapp",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
             ],
-            "identity": {
-                "type": "SystemAssigned"
-            },
             "properties": {
-                "name": "[parameters('funcname')]",
+                "name": "[parameters('funcName')]",
                 "siteConfig": {
                     "appSettings": [
                         {
                             "name": "AzureWebJobsDashboard",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-05-01-preview').key1)]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2018-02-01').keys[0].value)]"
                         },
                         {
                             "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-05-01-preview').key1)]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2018-02-01').keys[0].value)]"
                         },
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~1"
+                            "value": "~2"
                         },
                         {
                             "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), '2015-05-01-preview').key1)]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2018-02-01').keys[0].value)]"
                         },
                         {
                             "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[concat(toLower(parameters('funcname')), 'b86e')]"
+                            "value": "[concat(toLower(parameters('funcName')), 'b86e')]"
+                        },
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "6.5.0"
                         },
                         {
                             "name": "WEBSITE_RUN_FROM_PACKAGE",
-                            "value": "[parameters('zipFileBlobUri')]"
+                            "value": "[uri(parameters('_artifactsLocation'), concat('artifacts/functionzip/functionpackage.zip', parameters('_artifactsLocationSasToken')))]"
                         },
                         {
                             "name": "spSiteUrl",
@@ -137,20 +174,14 @@
             }
         },
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('storageName')]",
-            "apiVersion": "2018-02-01",
-            "kind": "StorageV2",
-            "location": "[variables('location')]",
-            "sku": {
-                "name": "Standard_LRS"
-            }
-        },
-        {
-            "apiVersion": "[variables('customrpApiversion')]",
+            "condition": "[parameters('deployFunction')]",
             "type": "Microsoft.CustomProviders/resourceProviders",
-            "name": "[parameters('funcname')]",
-            "location": "[variables('location')]",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('funcName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('funcName'))]"
+            ],
             "properties": {
                 "resourcetypes": [
                     {
@@ -167,9 +198,6 @@
                     }
                 ]
             },
-            "dependsOn": [
-                "[concat('Microsoft.Web/sites/',parameters('funcname'))]"
-            ]
         },
         {
             "type": "Microsoft.CustomProviders/resourceProviders/sites",
