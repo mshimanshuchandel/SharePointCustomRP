@@ -63,7 +63,7 @@
             "metadata": {
                 "description": "location of the user, not related to the resource location."
             }
-        },
+        }
     },
     "variables": {
         "location": "eastus",
