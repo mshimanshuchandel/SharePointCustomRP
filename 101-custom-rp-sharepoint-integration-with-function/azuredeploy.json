@@ -197,7 +197,7 @@
                         "endpoint": "[concat('https://', parameters('funcname'), '.azurewebsites.net/api/{requestPath}')]"
                     }
                 ]
-            },
+            }
         },
         {
             "type": "Microsoft.CustomProviders/resourceProviders/sites",
