@@ -68,13 +68,37 @@
         "sampleSiteTitle": {
             "type": "string",
             "metadata": {
-                "description": "Name of the sample site to be created"
+                "description": "Title of the sample site to be created"
             }
         },
         "sampleSiteDescription": {
             "type": "string",
             "metadata": {
                 "description": "Description of the sample site to be created"
+            }
+        },
+        "sampleEventTitle": {
+            "type": "string",
+            "metadata": {
+                "description": "Title of the sample event within sample site to be created"
+            }
+        },
+        "sampleEventDescription": {
+            "type": "string",
+            "metadata": {
+                "description": "Description of the sample event within sample site to be created"
+            }
+        },
+        "sampleEventStartTime": {
+            "type": "string",
+            "metadata": {
+                "description": "Start time of the sample event within sample site to be created"
+            }
+        },
+        "sampleEventEndTime": {
+            "type": "string",
+            "metadata": {
+                "description": "End time of the sample event within sample site to be created"
             }
         },
         "_artifactsLocation": {
@@ -210,6 +234,21 @@
             "properties": {
                 "title": "[parameters('sampleSiteTitle')]",
                 "description": "[parameters('sampleSiteDescription')]"
+            }
+        },
+        {
+            "type": "Microsoft.CustomProviders/resourceProviders/events",
+            "name": "[concat(parameters('funcName'), '/', parameters('sampleEventTitle'))]",
+            "apiVersion": "2018-09-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CustomProviders/resourceProviders/sites', parameters('sampleSiteTitle'))]"
+            ],
+            "properties": {
+                "title": "[parameters('sampleEventTitle')]",
+                "description": "[parameters('sampleEventDescription')]",
+                "startTime": "[parameters('sampleEventStartTime')]",
+                "endTime": "[parameters('sampleEventEndTime')]"
             }
         }
     ],
