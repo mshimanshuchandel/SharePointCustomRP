@@ -242,7 +242,7 @@
             "apiVersion": "2018-09-01-preview",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.CustomProviders/resourceProviders/sites', parameters('sampleSiteTitle'))]"
+                "[concat('Microsoft.CustomProviders/resourceProviders/', parameters('funcName'), '/sites/' parameters('sampleSiteTitle'))]"
             ],
             "properties": {
                 "title": "[parameters('sampleEventTitle')]",
