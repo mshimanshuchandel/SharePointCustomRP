@@ -216,7 +216,7 @@
                 ],
                 "resourceTypes": [
                     {
-                        "name": "events",
+                        "name": "sites/events",
                         "routingType": "Proxy,cache",
                         "endpoint": "[concat('https://', parameters('funcname'), '.azurewebsites.net/api/{requestPath}')]"
                     }
@@ -237,8 +237,8 @@
             }
         },
         {
-            "type": "Microsoft.CustomProviders/resourceProviders/events",
-            "name": "[concat(parameters('funcName'), '/', parameters('sampleEventTitle'))]",
+            "type": "Microsoft.CustomProviders/resourceProviders/sites/events",
+            "name": "[concat(parameters('funcName'), '/', parameters('sampleSiteTitle'), '/', parameters('sampleEventTitle'))]",
             "apiVersion": "2018-09-01-preview",
             "location": "[parameters('location')]",
             "dependsOn": [
