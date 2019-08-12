@@ -18,14 +18,14 @@
         },
         "funcName": {
             "type": "string",
-            "defaultValue": "[uniqueString(resourceGroup().id)]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Name of the function app to be created."
             }
         },
         "storageAccountName": {
             "type": "string",
-            "defaultValue": "[uniqueString(resourceGroup().id)]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Name of the storage account for storing users in the function app"
             }
